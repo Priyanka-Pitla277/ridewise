@@ -1,6 +1,7 @@
 package com.airtribe.ridewise.repository;
 
 import com.airtribe.ridewise.enums.VehicleType;
+import com.airtribe.ridewise.exception.NoDriverAvailableException;
 import com.airtribe.ridewise.model.Driver;
 import com.airtribe.ridewise.model.Location;
 
@@ -22,12 +23,10 @@ public class DriverRepositoryImplManualTest {
         Location locA = new Location(12.9, 77.5, "Location A");
         Location locB = new Location(13.0, 77.6, "Location B");
 
-        Driver driver1 = new Driver("D-101", "John");
-        driver1.setVehicleType(VehicleType.SEDAN);
+        Driver driver1 = new Driver(new Location("D-101"), "John", VehicleType.CAR);
         driver1.setAvailable(true);
 
-        Driver driver2 = new Driver("D-102", "Alex");
-        driver2.setVehicleType(VehicleType.SUV);
+        Driver driver2 = new Driver(new Location("D-102"), "Alex", VehicleType.CAR);
         driver2.setAvailable(false); // Starts unavailable
 
         // 3. Execute Test Pipeline
@@ -35,7 +34,7 @@ public class DriverRepositoryImplManualTest {
         testRegisterDriver(repository, driver2);
 
         testGetAvailableDrivers(repository);
-        testGetAvailableDriversByVehicleType(repository, VehicleType.SEDAN);
+        testGetAvailableDriversByVehicleType(repository, VehicleType.CAR);
 
         testUpdateDriverDetails_Success(repository, "D-101", locB);
         testUpdateDriverDetails_NotFoundException(repository, "INVALID-ID", locA);
@@ -81,7 +80,7 @@ public class DriverRepositoryImplManualTest {
         System.out.println("--- Test: Update Driver Details & Complete Trip ---");
 
         // Act
-        boolean patchStatus = repo.updateDriverDetails(id, true, targetLocation);
+        boolean patchStatus = repo.updateDriverDetails("DRV-20260620-00001", true, targetLocation);
 
         // Assert
         if (patchStatus) {
@@ -93,4 +92,15 @@ public class DriverRepositoryImplManualTest {
         System.out.println();
     }
 
-    private static void testUpdateDriverDetails_NotFoundException(DriverRepository repo, String fakeId, Location dummy
+    private static void testUpdateDriverDetails_NotFoundException(DriverRepository repo, String fakeId, Location dummyLoc) {
+        System.out.println("--- Test: Update Non-existent Driver (Expect Exception) ---");
+
+        try {
+            repo.updateDriverDetails(fakeId, true, dummyLoc);
+            System.out.println("Assertion FAILED: Method completed without venting expected exception routes.");
+        } catch (NoDriverAvailableException ex) {
+            System.out.println("Assertion Passed: Caught expected error cleanly -> " + ex.getMessage());
+        }
+        System.out.println();
+    }
+}

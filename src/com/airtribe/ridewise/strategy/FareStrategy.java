@@ -1,7 +1,10 @@
 package com.airtribe.ridewise.strategy;
 
+import com.airtribe.ridewise.model.Ride;
+
 /**
  * @author Priyanka Pitla
  */
-public class NearestDriverStrategy {
+public interface FareStrategy {
+    double calculateFare(Ride ride);
 }
